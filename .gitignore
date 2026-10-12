@@ -1,3 +1,5 @@
+# Repository Hygiene & Governance - Atharv (S6_Atharv)
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -48,7 +50,6 @@ htmlcov/
 *.db
 *.sqlite
 *.sqlite3
-
 
 # Environment variables & secrets
 .env
