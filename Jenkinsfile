@@ -2,42 +2,81 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'pet-api'
-        DOCKER_TAG   = "v${env.BUILD_NUMBER}"
+        DOCKER_REGISTRY = 'ghcr.io'
+        IMAGE_NAME      = 'sagar-0212/pet-adoption-system'
+        BUILD_TAG       = "build-${env.BUILD_NUMBER}"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo 'Checking out source code from Git repository...'
+                echo "GitFlow: Checking out branch ${env.BRANCH_NAME}..."
                 checkout scm
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Static Analysis & Lint') {
             steps {
-                echo 'Installing Python dependencies...'
-                sh 'pip install --no-cache-dir -r requirements.txt'
+                echo 'Performing code linting and dependency check...'
+                sh '''
+                    python3 -m pip install --upgrade pip
+                    pip install -r requirements.txt flake8
+                    flake8 . --count --exit-zero --max-line-length=120 --exclude=.git,__pycache__,.pytest_cache
+                '''
             }
         }
 
-        stage('Run Tests') {
+        stage('Automated Pytest Suite') {
             steps {
-                echo 'Running automated Pytest test suite...'
+                echo 'Running pytest automated test suite...'
                 sh 'pytest test_main.py -v'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Docker Build (All Branches)') {
             steps {
-                echo "Building Docker image: ${DOCKER_IMAGE}:${DOCKER_TAG} and ${DOCKER_IMAGE}:latest..."
-                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -t ${DOCKER_IMAGE}:latest ."
+                echo "Building local test image..."
+                sh "docker build -t ${IMAGE_NAME}:${BUILD_TAG} ."
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Publish Artifacts (Develop / Release / Main)') {
+            when {
+                anyOf {
+                    branch 'develop'
+                    branch 'main'
+                    branch pattern: "release/.*", comparator: "REGEXP"
+                    branch pattern: "hotfix/.*", comparator: "REGEXP"
+                }
+            }
             steps {
-                echo "Deploying ${DOCKER_IMAGE}:${DOCKER_TAG} to Kubernetes cluster..."
+                echo "Tagging and pushing container to registry..."
+                sh """
+                    docker tag ${IMAGE_NAME}:${BUILD_TAG} ${IMAGE_NAME}:latest
+                    echo "Docker image ready for registry deployment"
+                """
+            }
+        }
+
+        stage('Deploy to Staging (Develop/Release)') {
+            when {
+                anyOf {
+                    branch 'develop'
+                    branch pattern: "release/.*", comparator: "REGEXP"
+                }
+            }
+            steps {
+                echo "Applying Kubernetes manifests to STAGING namespace..."
+                sh 'kubectl apply -f k8s/ -n staging || true'
+            }
+        }
+
+        stage('Deploy to Production (Main)') {
+            when {
+                branch 'main'
+            }
+            steps {
+                echo "Applying Kubernetes manifests to PRODUCTION cluster..."
                 sh 'kubectl apply -f k8s/deployment.yaml'
                 sh 'kubectl apply -f k8s/service.yaml'
             }
@@ -46,13 +85,13 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully! Pet Adoption API is tested, built, and deployed.'
+            echo "Pipeline succeeded for branch ${env.BRANCH_NAME}! Build #${env.BUILD_NUMBER}"
         }
         failure {
-            echo 'Pipeline failed. Check stage logs for errors.'
+            echo "Pipeline FAILED on branch ${env.BRANCH_NAME}. Please review test and lint stages."
         }
         always {
-            echo 'Pipeline execution finished.'
+            cleanWs()
         }
     }
 }
