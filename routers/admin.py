@@ -9,8 +9,6 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from models import StatusUpdate, PetModel, AdoptionRequestModel
-from routers.pets import pets_db
-from routers.adoptions import adoptions_db
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 

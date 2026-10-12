@@ -8,6 +8,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from database import init_db
 from routers import pets, adoptions, admin
@@ -57,19 +58,22 @@ def root():
 def health_check():
     """Kubernetes Liveness and Readiness probe endpoint."""
     return {"status": "ok"}
-from fastapi.responses import FileResponse, RedirectResponse
+
 
 @app.get("/adopt", tags=["Frontend"])
 def serve_adopt():
     return FileResponse(os.path.join(static_dir, "index.html"))
 
+
 @app.get("/care", tags=["Frontend"])
 def serve_care():
     return FileResponse(os.path.join(static_dir, "care.html"))
 
+
 @app.get("/services", tags=["Frontend"])
 def serve_services():
     return FileResponse(os.path.join(static_dir, "services.html"))
+
 
 @app.get("/admin-dashboard", tags=["Frontend"])
 def serve_admin():

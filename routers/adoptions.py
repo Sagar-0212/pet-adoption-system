@@ -4,13 +4,12 @@ Handles adoption request submissions and retrievals backed by persistent databas
 Author: Yash (S3_Yash)
 """
 import collections.abc
-from typing import Dict, List, Optional
+from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
 from database import get_db, SessionLocal, init_db
 from models import AdoptionRequest, AdoptionRequestModel, PetModel
-from routers.pets import pets_db
 
 router = APIRouter(prefix="/adoptions", tags=["Adoption Requests"])
 

@@ -2,9 +2,14 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = 'ghcr.io'
-        IMAGE_NAME      = 'sagar-0212/pet-adoption-system'
-        BUILD_TAG       = "build-${env.BUILD_NUMBER}"
+        AWS_DEFAULT_REGION = 'us-east-1'
+        AWS_ACCOUNT_ID     = credentials('AWS_ACCOUNT_ID')
+        AWS_CREDENTIALS_ID = 'aws-credentials'
+        ECR_REPOSITORY     = 'pet-adoption-system'
+        EKS_CLUSTER_NAME   = 'pet-adoption-eks'
+        IMAGE_NAME         = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPOSITORY}"
+        // Immutable image tag strategy: git commit short SHA + build number
+        IMAGE_TAG          = "${env.GIT_COMMIT ? env.GIT_COMMIT.take(8) : 'sha'}-${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -15,32 +20,47 @@ pipeline {
             }
         }
 
-        stage('Static Analysis & Lint') {
+        stage('Static Analysis & Quality Gate') {
             steps {
-                echo 'Performing code linting and dependency check...'
+                echo 'Running flake8 static code analysis and PEP8 validation...'
                 sh '''
                     python3 -m pip install --upgrade pip
                     pip install -r requirements.txt flake8
-                    flake8 . --count --exit-zero --max-line-length=120 --exclude=.git,__pycache__,.pytest_cache
+                    flake8 . --count --max-line-length=120 --exclude=.git,__pycache__,.pytest_cache
                 '''
             }
         }
 
         stage('Automated Pytest Suite') {
             steps {
-                echo 'Running pytest automated test suite...'
+                echo 'Executing pytest automated test suite...'
                 sh 'pytest test_main.py -v'
             }
         }
 
-        stage('Docker Build (All Branches)') {
+        stage('Docker Build') {
             steps {
-                echo "Building local test image..."
-                sh "docker build -t ${IMAGE_NAME}:${BUILD_TAG} ."
+                echo "Building container image with immutable tag: ${IMAGE_NAME}:${IMAGE_TAG}..."
+                sh """
+                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest .
+                """
             }
         }
 
-        stage('Publish Artifacts (Develop / Release / Main)') {
+        stage('Container Security Scan (Trivy)') {
+            steps {
+                echo "Scanning Docker image for vulnerabilities..."
+                sh """
+                    if command -v trivy >/dev/null 2>&1; then
+                        trivy image --exit-code 0 --severity HIGH,CRITICAL ${IMAGE_NAME}:${IMAGE_TAG}
+                    else
+                        echo "Trivy not installed on Jenkins agent; skipping local CVE scan"
+                    fi
+                """
+            }
+        }
+
+        stage('Push to Amazon ECR') {
             when {
                 anyOf {
                     branch 'develop'
@@ -50,15 +70,22 @@ pipeline {
                 }
             }
             steps {
-                echo "Tagging and pushing container to registry..."
-                sh """
-                    docker tag ${IMAGE_NAME}:${BUILD_TAG} ${IMAGE_NAME}:latest
-                    echo "Docker image ready for registry deployment"
-                """
+                echo 'Authenticating with Amazon ECR and pushing image...'
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: "${AWS_CREDENTIALS_ID}"
+                ]]) {
+                    sh """
+                        aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+                        aws ecr describe-repositories --repository-names ${ECR_REPOSITORY} --region ${AWS_DEFAULT_REGION} || aws ecr create-repository --repository-name ${ECR_REPOSITORY} --image-tag-mutability IMMUTABLE --region ${AWS_DEFAULT_REGION}
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                        docker push ${IMAGE_NAME}:latest
+                    """
+                }
             }
         }
 
-        stage('Deploy to Staging (Develop/Release)') {
+        stage('Deploy to Staging (EKS)') {
             when {
                 anyOf {
                     branch 'develop'
@@ -66,19 +93,55 @@ pipeline {
                 }
             }
             steps {
-                echo "Applying Kubernetes manifests to STAGING namespace..."
-                sh 'kubectl apply -f k8s/ -n staging || true'
+                echo "GitFlow: Automated deployment to Staging namespace in AWS EKS..."
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: "${AWS_CREDENTIALS_ID}"
+                ]]) {
+                    sh """
+                        aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ${EKS_CLUSTER_NAME}
+                        kubectl create namespace staging --dry-run=client -o yaml | kubectl apply -f -
+                        sed -i 's|IMAGE_PLACEHOLDER|${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
+                        kubectl apply -f k8s/ -n staging
+                        kubectl rollout status deployment/pet-api -n staging --timeout=180s
+                    """
+                }
             }
         }
 
-        stage('Deploy to Production (Main)') {
+        stage('Manual Approval for Production') {
             when {
                 branch 'main'
             }
             steps {
-                echo "Applying Kubernetes manifests to PRODUCTION cluster..."
-                sh 'kubectl apply -f k8s/deployment.yaml'
-                sh 'kubectl apply -f k8s/service.yaml'
+                timeout(time: 30, unit: 'MINUTES') {
+                    input message: "Approve deployment to AWS EKS Production with image tag ${IMAGE_TAG}?",
+                          ok: "Deploy to Production",
+                          submitterParameter: 'APPROVER'
+                }
+            }
+        }
+
+        stage('Deploy to Production (EKS)') {
+            when {
+                branch 'main'
+            }
+            steps {
+                echo "Deploying verified image ${IMAGE_TAG} to Production..."
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: "${AWS_CREDENTIALS_ID}"
+                ]]) {
+                    sh """
+                        aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ${EKS_CLUSTER_NAME}
+                        sed -i 's|IMAGE_PLACEHOLDER|${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
+                        kubectl apply -f k8s/deployment.yaml
+                        kubectl apply -f k8s/service.yaml
+                        kubectl rollout status deployment/pet-api --timeout=180s
+                        echo "Production rollout successfully completed!"
+                        kubectl get service pet-service
+                    """
+                }
             }
         }
     }
@@ -88,7 +151,7 @@ pipeline {
             echo "Pipeline succeeded for branch ${env.BRANCH_NAME}! Build #${env.BUILD_NUMBER}"
         }
         failure {
-            echo "Pipeline FAILED on branch ${env.BRANCH_NAME}. Please review test and lint stages."
+            echo "Pipeline FAILED on branch ${env.BRANCH_NAME}. Please review test and deployment stages."
         }
         always {
             cleanWs()

@@ -5,7 +5,7 @@ and Pydantic schemas (Pet, AdoptionRequest, StatusUpdate, User, UserCreate, User
 Author: Sagar / Neal (S2_Neal)
 """
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 from pydantic import BaseModel
 from sqlalchemy import Column, String, Integer, Text, Boolean, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship

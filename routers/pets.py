@@ -4,7 +4,7 @@ Handles pet registration, retrieval, updating, deletion, and listing backed by p
 Author: Sagar / Neal (S2_Neal)
 """
 import collections.abc
-from typing import Dict, List
+from typing import List
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 
