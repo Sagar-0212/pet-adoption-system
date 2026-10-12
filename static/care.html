@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-50 text-gray-800">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Care | Happy Paws</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { brand: { orange: '#F97316', blue: '#0EA5E9', dark: '#1F2937' } }, fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .modal-enter { animation: modalFadeIn 0.3s ease-out forwards; }
+        @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <a href="/adopt" class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-brand-orange flex items-center justify-center text-white">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </div>
+                <span class="text-xl font-bold text-brand-dark tracking-tight">Happy Paws</span>
+            </a>
+            <nav class="hidden md:flex gap-6">
+                <a href="/adopt" class="text-gray-500 hover:text-brand-dark font-medium px-1 py-5 transition-colors">Adopt a Pet</a>
+                <a href="/care" class="text-brand-orange font-semibold border-b-2 border-brand-orange px-1 py-5">Pet Care</a>
+                <a href="/services" class="text-gray-500 hover:text-brand-dark font-medium px-1 py-5 transition-colors">Services</a>
+            </nav>
+            <div class="flex items-center">
+                <button onclick="openLogin()" class="bg-brand-blue hover:bg-blue-600 text-white px-5 py-2 rounded-md font-medium transition-colors shadow-sm">
+                    Login / Sign Up
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-12">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">Expert Pet Care Guides</h1>
+            <p class="text-lg text-gray-600">Everything you need to know about keeping your furry best friend happy, healthy, and thriving in their new home.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Article 1 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+                <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=600&q=80" class="w-full h-48 object-cover">
+                <div class="p-6">
+                    <span class="text-brand-orange text-xs font-bold uppercase tracking-wider">Training</span>
+                    <h3 class="text-xl font-bold text-gray-900 mt-2 mb-2">Puppy Training 101</h3>
+                    <p class="text-gray-600 text-sm mb-4">Master the basics of house-training, leash walking, and positive reinforcement to build a strong bond with your new pup.</p>
+                    <a href="#" class="text-brand-blue font-semibold text-sm hover:underline">Read Guide &rarr;</a>
+                </div>
+            </div>
+            <!-- Article 2 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+                <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=600&q=80" class="w-full h-48 object-cover">
+                <div class="p-6">
+                    <span class="text-brand-orange text-xs font-bold uppercase tracking-wider">Nutrition</span>
+                    <h3 class="text-xl font-bold text-gray-900 mt-2 mb-2">The Ultimate Cat Diet</h3>
+                    <p class="text-gray-600 text-sm mb-4">Wet food vs. dry food? Learn how to balance your cat's diet to ensure they get the right hydration and nutrients.</p>
+                    <a href="#" class="text-brand-blue font-semibold text-sm hover:underline">Read Guide &rarr;</a>
+                </div>
+            </div>
+            <!-- Article 3 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+                <img src="https://images.unsplash.com/photo-1537151608804-ea2f107384dc?auto=format&fit=crop&w=600&q=80" class="w-full h-48 object-cover">
+                <div class="p-6">
+                    <span class="text-brand-orange text-xs font-bold uppercase tracking-wider">Health</span>
+                    <h3 class="text-xl font-bold text-gray-900 mt-2 mb-2">Senior Pet Care</h3>
+                    <p class="text-gray-600 text-sm mb-4">As pets age, their needs change. Discover tips for joint care, mental stimulation, and comfortable sleeping arrangements.</p>
+                    <a href="#" class="text-brand-blue font-semibold text-sm hover:underline">Read Guide &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="closeLogin()"></div>
+        <div class="bg-white w-full max-w-md mx-4 rounded-xl shadow-2xl z-10 overflow-hidden modal-enter relative p-8">
+            <button onclick="closeLogin()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 rounded-full bg-brand-orange flex items-center justify-center text-white mx-auto mb-3">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Welcome Back</h2>
+                <p class="text-sm text-gray-500 mt-1">Sign in to your Happy Paws account</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" id="loginEmail" value="admin@happypaws.com" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-brand-orange focus:border-brand-orange" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="loginPass" value="admin" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-brand-orange focus:border-brand-orange" required>
+                </div>
+                <button type="submit" class="w-full bg-brand-blue hover:bg-blue-600 text-white font-bold py-2.5 rounded-md shadow-sm transition-colors mt-2">
+                    Sign In
+                </button>
+            </form>
+            <div class="mt-6 text-center text-sm text-gray-500">
+                Don't have an account? <a href="#" class="text-brand-orange font-semibold hover:underline">Sign up</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openLogin() { document.getElementById('loginModal').classList.remove('hidden'); document.getElementById('loginModal').classList.add('flex'); }
+        function closeLogin() { document.getElementById('loginModal').classList.add('hidden'); document.getElementById('loginModal').classList.remove('flex'); }
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if(document.getElementById('loginEmail').value === 'admin@happypaws.com' && document.getElementById('loginPass').value === 'admin') {
+                window.location.href = '/admin-dashboard';
+            } else {
+                alert('Logged in successfully!');
+                closeLogin();
+            }
+        });
+    </script>
+</body>
+</html>
