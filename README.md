@@ -1,4 +1,4 @@
-﻿# Pet Adoption & Management System
+# Pet Adoption & Management System
 
 A production-grade RESTful API and responsive web platform for managing animal shelter operations, pet registrations, and adoption workflows. Built with **FastAPI**, **SQLite**, **SQLAlchemy 2.0**, **Docker**, **Jenkins**, and **Kubernetes**.
 
