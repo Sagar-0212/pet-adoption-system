@@ -6,7 +6,6 @@ Author: Sagar / DevOps Team
 import os
 import sqlite3
 import hashlib
-from datetime import datetime
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "pets.db")
 
@@ -29,7 +28,10 @@ SAMPLE_PETS = [
         "Dog",
         "Golden Retriever",
         2,
-        "Bella is a cheerful, affectionate golden girl who loves morning jogs, playing fetch at the park, and gentle belly rubs. She is completely house-trained, vaccinated, and gets along wonderfully with kids and other pets.",
+        (
+            "Bella is a cheerful, affectionate golden girl who loves morning jogs, playing fetch at the park, "
+            "and gentle belly rubs. She is completely house-trained, vaccinated, and gets along with kids and pets."
+        ),
         "available",
         "Female",
         "Medium",
@@ -41,7 +43,10 @@ SAMPLE_PETS = [
         "Cat",
         "Ginger Tabby",
         1,
-        "Milo is an inquisitive little sweetheart who loves napping in sunbeams and chasing feather toys. Litter-box trained, neutered, and very affectionate once he gets to know you.",
+        (
+            "Milo is an inquisitive little sweetheart who loves napping in sunbeams and chasing feather toys. "
+            "Litter-box trained, neutered, and very affectionate once he gets to know you."
+        ),
         "available",
         "Male",
         "Small",
@@ -53,7 +58,10 @@ SAMPLE_PETS = [
         "Dog",
         "German Shepherd",
         3,
-        "Rocky is an alert, intelligent, and fiercely loyal boy. He has completed basic obedience training, walks calmly on a leash, and loves outdoor adventures. Best suited for an active family.",
+        (
+            "Rocky is an alert, intelligent, and loyal boy. He has completed basic obedience training, "
+            "walks calmly on a leash, and loves outdoor adventures. Best suited for an active family."
+        ),
         "available",
         "Male",
         "Large",
@@ -65,7 +73,10 @@ SAMPLE_PETS = [
         "Cat",
         "Siamese",
         2,
-        "Luna has striking blue eyes and a calm, dignified personality. She loves perching by windows and curling up on your lap during quiet evenings. Fully vaccinated and dewormed.",
+        (
+            "Luna has striking blue eyes and a calm, dignified personality. She loves perching by windows "
+            "and curling up on your lap during quiet evenings. Fully vaccinated and dewormed."
+        ),
         "available",
         "Female",
         "Small",
@@ -77,7 +88,10 @@ SAMPLE_PETS = [
         "Dog",
         "Beagle",
         4,
-        "Charlie is a goofy, treat-loving beagle with soulful brown eyes. He loves sniffing every corner of the yard, making friends with neighbors, and snuggling under cozy blankets.",
+        (
+            "Charlie is a goofy, treat-loving beagle with soulful brown eyes. He loves sniffing every corner "
+            "of the yard, making friends with neighbors, and snuggling under cozy blankets."
+        ),
         "available",
         "Male",
         "Medium",
@@ -89,7 +103,10 @@ SAMPLE_PETS = [
         "Dog",
         "Indie / Desi Dog",
         1,
-        "Daisy was rescued as an abandoned pup in Pune and nurtured back to full health. She is super smart, resilient, extremely friendly, and has boundless love to give to a caring family.",
+        (
+            "Daisy was rescued as an abandoned pup in Pune and nurtured back to health. She is super smart, "
+            "resilient, extremely friendly, and has boundless love to give to a caring family."
+        ),
         "available",
         "Female",
         "Medium",
@@ -101,7 +118,10 @@ SAMPLE_PETS = [
         "Cat",
         "Persian",
         3,
-        "Simba is a regal, fluffy indoor prince. Very gentle, quiet, and enjoys brushing sessions. He has already found his forever family and was happily adopted!",
+        (
+            "Simba is a regal, fluffy indoor prince. Very gentle, quiet, and enjoys brushing sessions. "
+            "He has already found his forever family and was happily adopted!"
+        ),
         "adopted",
         "Male",
         "Medium",
@@ -113,7 +133,10 @@ SAMPLE_PETS = [
         "Dog",
         "Labrador Retriever",
         5,
-        "Bruno is a friendly giant who was successfully adopted by a lovely family in Mumbai. He enjoys swimming, fetching tennis balls, and playing with his new human siblings.",
+        (
+            "Bruno is a friendly giant who was successfully adopted by a lovely family in Mumbai. "
+            "He enjoys swimming, fetching tennis balls, and playing with his new human siblings."
+        ),
         "adopted",
         "Male",
         "Large",
@@ -127,7 +150,7 @@ SAMPLE_REQUESTS = [
         "PET-007",
         "Aarav Mehta",
         "aarav.mehta@example.com",
-        "We have a peaceful apartment and plenty of time to care for Simba's grooming. We fell in love with him instantly!",
+        "We have a peaceful apartment and plenty of time to care for Simba's grooming. We fell in love with him!",
         "approved",
         1,
     ),
@@ -136,7 +159,7 @@ SAMPLE_REQUESTS = [
         "PET-008",
         "Vikram Singhania",
         "vikram.s@example.com",
-        "We have a large home with a fenced lawn. Our previous lab lived with us for 12 years. We'd love to give Bruno a wonderful home.",
+        "We have a large home with a fenced lawn. Our previous lab lived with us for 12 years. We'd love Bruno.",
         "approved",
         2,
     ),
@@ -145,7 +168,7 @@ SAMPLE_REQUESTS = [
         "PET-001",
         "Sunita Deshmukh",
         "sunita.d@example.com",
-        "Our family loves dogs and we work remotely. We would love to arrange a meet and greet with Bella this weekend!",
+        "Our family loves dogs and we work remotely. We would love to arrange a meet and greet with Bella!",
         "pending",
         3,
     ),
@@ -169,8 +192,9 @@ def seed_database():
     # 2. Pets
     cur.executemany(
         """
-        INSERT OR REPLACE INTO pets (pet_id, name, species, breed, age, description, status, gender, size, age_category)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR REPLACE INTO pets (
+            pet_id, name, species, breed, age, description, status, gender, size, age_category
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         SAMPLE_PETS,
     )
@@ -178,8 +202,9 @@ def seed_database():
     # 3. Adoption Requests
     cur.executemany(
         """
-        INSERT OR REPLACE INTO adoption_requests (request_id, pet_id, adopter_name, adopter_email, message, status, user_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT OR REPLACE INTO adoption_requests (
+            request_id, pet_id, adopter_name, adopter_email, message, status, user_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
         SAMPLE_REQUESTS,
     )
@@ -194,7 +219,7 @@ def seed_database():
     req_count = cur.fetchone()[0]
 
     conn.close()
-    print(f"Database successfully seeded! Pets: {pets_count}, Users: {users_count}, Adoption Requests: {req_count}")
+    print(f"Database seeded! Pets: {pets_count}, Users: {users_count}, Requests: {req_count}")
 
 
 if __name__ == "__main__":

@@ -65,5 +65,5 @@ def init_db():
                     try:
                         from seed_data import seed_database
                         seed_database()
-                    except Exception as e:
+                    except Exception:
                         pass

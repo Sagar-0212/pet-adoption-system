@@ -11,7 +11,6 @@ Features 27 exhaustive unit, integration, and lifecycle tests:
 Guarantees 100% pass rate with 0 failures under `pytest test_main.py`.
 """
 import os
-os.environ["TESTING"] = "1"
 import pytest
 from fastapi.testclient import TestClient
 from main import app
@@ -19,6 +18,8 @@ from database import init_db, SessionLocal
 from models import PetModel, AdoptionRequestModel
 from routers.pets import pets_db
 from routers.adoptions import adoptions_db
+
+os.environ["TESTING"] = "1"
 
 # Initialize FastAPI TestClient
 client = TestClient(app)
