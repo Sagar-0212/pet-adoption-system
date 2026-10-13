@@ -58,3 +58,12 @@ def init_db():
                 conn.exec_driver_sql("ALTER TABLE adoption_requests ADD COLUMN user_id INTEGER")
 
             conn.commit()
+
+            if os.getenv("TESTING") != "1":
+                pet_count = conn.exec_driver_sql("SELECT COUNT(*) FROM pets").scalar()
+                if pet_count == 0:
+                    try:
+                        from seed_data import seed_database
+                        seed_database()
+                    except Exception as e:
+                        pass

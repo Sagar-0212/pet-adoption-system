@@ -10,6 +10,8 @@ Features 27 exhaustive unit, integration, and lifecycle tests:
 - Multi-step end-to-end adoption lifecycle workflow test.
 Guarantees 100% pass rate with 0 failures under `pytest test_main.py`.
 """
+import os
+os.environ["TESTING"] = "1"
 import pytest
 from fastapi.testclient import TestClient
 from main import app
